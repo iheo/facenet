@@ -34,8 +34,8 @@ import facenet
 def evaluate(embeddings, actual_issame, nrof_folds=10, distance_metric=0, subtract_mean=False):
     # Calculate evaluation metrics
     thresholds = np.arange(0, 4, 0.01)
-    embeddings1 = embeddings[0::2]
-    embeddings2 = embeddings[1::2]
+    embeddings1 = embeddings[0::2]  # even ordering -> net output from img1
+    embeddings2 = embeddings[1::2]  # odd  ordering -> net output from img2
     tpr, fpr, accuracy = facenet.calculate_roc(thresholds, embeddings1, embeddings2,
         np.asarray(actual_issame), nrof_folds=nrof_folds, distance_metric=distance_metric, subtract_mean=subtract_mean)
     thresholds = np.arange(0, 4, 0.001)
@@ -43,10 +43,20 @@ def evaluate(embeddings, actual_issame, nrof_folds=10, distance_metric=0, subtra
         np.asarray(actual_issame), 1e-3, nrof_folds=nrof_folds, distance_metric=distance_metric, subtract_mean=subtract_mean)
     return tpr, fpr, accuracy, val, val_std, far
 
-def get_paths(lfw_dir, pairs):
+
+# def my_roc(thresholds, x1, x2, y, distance_metric='cosine'):
+
+
+
+
+def get_paths(lfw_dir, pairs, num_data=None, shuffle=False):
     nrof_skipped_pairs = 0
     path_list = []
     issame_list = []
+    pairs = pairs[0::50]
+    if shuffle:
+        np.random.shuffle(pairs)
+    count = 0
     for pair in pairs:
         if len(pair) == 3:
             path0 = add_extension(os.path.join(lfw_dir, pair[0], pair[0] + '_' + '%04d' % int(pair[1])))
@@ -61,6 +71,10 @@ def get_paths(lfw_dir, pairs):
             issame_list.append(issame)
         else:
             nrof_skipped_pairs += 1
+        if num_data is not None:
+            count += 1
+            if count >= num_data:
+                break
     if nrof_skipped_pairs>0:
         print('Skipped %d image pairs' % nrof_skipped_pairs)
     
