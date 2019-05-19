@@ -28,6 +28,7 @@ from __future__ import print_function
 from scipy import misc
 import sys
 import os
+sys.path.append(os.path.expanduser('~/projects/facenet/src'))
 import argparse
 import tensorflow as tf
 import numpy as np
